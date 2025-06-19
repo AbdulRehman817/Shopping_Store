@@ -6,12 +6,30 @@ const RegiserUser=async(req,res)=>{
         return res.status(400).json({ message: "Please fill all fields" });
         
     }
+
+if (!req.file) {
+    return res.status(400).json({ message: "No image file uploaded" });
+  }
+
+  try {
+    const imageUrl = await uploadImageToCloudinary(req.file.path);
+
+    if (!imageUrl) {
+      return res.status(500).json({ message: "Image upload failed" });
+    }
+
+  } catch (error) {
+    console.error("Upload Route Error:", error);
+    res.status(500).json({ message: "Internal server error during upload" });
+  }
+
+
     const user=User.findOne({email});
     if(user){
         return res.status(400).json({ message: "User already exists" });
     }else{
         const newUser=user.create({
-            name,email,password
+            name,email,password,image:imageUrl
         })
         return res.status(201).json({
             message: "User registered successfully",
@@ -34,6 +52,8 @@ const generateRefreshToken = (user) => {
 
 
 
+
+
 const LoginUser=async(req,res)=>{
      const {name,email}=req.body;
     if (!name || !email ) {
@@ -42,11 +62,11 @@ const LoginUser=async(req,res)=>{
     const user=User.findOne({email});
     if(!user)  {
     return    res.status(400).json({message:"User not found"})}
-    const isPasswordValid=await user.matchPassword(password,user.password);
+     const isPasswordValid = await bcrypt.compare(password, user.password);
     if(!isPasswordValid){
         return res.status(400).json({message:"Invalid password"})
     }
-      const accessToken = generateAccessToken(user);
+  const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
 
   // cookies
