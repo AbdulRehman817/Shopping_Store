@@ -15,6 +15,10 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true,
     },
+    image: {
+      type: String,
+       // if you're storing profile image URLs
+    },
     isAdmin:{
         type:Boolean,
         default:false,
@@ -23,15 +27,15 @@ const userSchema=new mongoose.Schema({
     timestamps:true,
 })
 
-UserSchema.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+ 
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
 // Compare password method
-UserSchema.methods.matchPassword = async function (enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

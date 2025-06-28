@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
     items: [{
         productId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
+            ref: 'ShoppingProducts',
             required: true,
         },
         quantity: {
@@ -25,4 +25,4 @@ const orderSchema = new mongoose.Schema({
 }, {
     timestamps: true,
 });
-export const Order = mongoose.model('Order', orderSchema);
+export const ShoppingOrder = mongoose.model('ShoppingOrder', orderSchema);

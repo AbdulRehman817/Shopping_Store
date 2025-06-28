@@ -1,36 +1,7 @@
-import { Product } from "../models/product.models.js";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import { ShoppingProducts } from "../models/product.models.js";
 
-// Cloudinary Config
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-});
+import { uploadImageToImageKit } from "../utils/imageKit.js";
 
-// Upload Image Utility
-const uploadImageToCloudinary = async (localPath) => {
-  try {
-    const result = await cloudinary.uploader.upload(localPath, {
-      resource_type: "auto",
-    });
-    await fs.promises.unlink(localPath); // Clean up local file
-    return result.url;
-  } catch (error) {
-    console.error("Cloudinary Upload Error:", error.message);
-    try {
-      if (fs.existsSync(localPath)) {
-        await fs.promises.unlink(localPath);
-      }
-    } catch (unlinkError) {
-      console.error("Failed to delete local file:", unlinkError.message);
-    }
-    return null;
-  }
-};
-
-// Upload Image Route
 
 
 // Create Product
@@ -44,7 +15,7 @@ const createProduct = async (req, res) => {
       });
     }
 
-    const existingProduct = await Product.findOne({ name });
+    const existingProduct = await ShoppingProducts.findOne({ name });
     if (existingProduct) {
       return res.status(409).json({
         message: "This product already exists",
@@ -56,23 +27,17 @@ const createProduct = async (req, res) => {
     return res.status(400).json({ message: "No image file uploaded" });
   }
 
-  try {
-    const imageUrl = await uploadImageToCloudinary(req.file.path);
+  
+    const imageUrl = await uploadImageToImageKit(req.file.path);
 
     if (!imageUrl) {
       return res.status(500).json({ message: "Image upload failed" });
     }
 
-    res.status(200).json({
-      message: "Image uploaded successfully",
-      url: imageUrl,
-    });
-  } catch (error) {
-    console.error("Upload Route Error:", error);
-    res.status(500).json({ message: "Internal server error during upload" });
-  }
+   
+  
 
-    const product = await Product.create({
+    const product = await ShoppingProducts.create({
       name,
       description,
       price,
@@ -94,7 +59,7 @@ const createProduct = async (req, res) => {
 // Get All Products
 const findAllProduct = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await ShoppingProducts.find();
     res.status(200).json({
       message: "All products fetched successfully",
       products,
@@ -108,7 +73,7 @@ const findAllProduct = async (req, res) => {
 // Get Single Product
 const getSingleProduct = async (req, res) => {
   try {
-    const singleProduct = await Product.findById(req.params.id);
+    const singleProduct = await ShoppingProducts.findById(req.params.id);
     if (!singleProduct) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -127,5 +92,5 @@ export {
   getSingleProduct,
   findAllProduct,
   createProduct,
-  uploadImage, // export this if you use it as a route
+  
 };

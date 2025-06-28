@@ -22,13 +22,13 @@ type:String,
 required:true
     },
     stock:{
-        type:String,
+        type:Number,
         required:true,
     },
 },{
     timestamp:true,
 })
-export const Product=mongoose.model(
-    'Product',
+export const ShoppingProducts=mongoose.model(
+    'ShoppingProducts',
     productSchema
 )
