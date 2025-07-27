@@ -1,10 +1,10 @@
-
 import express from "express";
 import {
- getSingleProduct,
+  getSingleProduct,
   findAllProduct,
   createProduct,
-//   uploadImage,
+  getProductByCategory,
+  //   uploadImage,
 } from "../controllers/product.controllers.js";
 
 import { upload } from "../middleware/user.multer.js";
@@ -16,12 +16,10 @@ router.post("/addProduct", upload.single("image"), createProduct);
 
 // Edit an existing best deal product
 
-
 // Get all best deal products
 router.get("/getProduct", findAllProduct);
 
-
-
-// router.get("/products/category/:categoryName", getProductsByCategory);
+router.get("/team/:team", getProductByCategory);
+router.get("/teams/teamName/:id", getSingleProduct);
 
 export default router;
