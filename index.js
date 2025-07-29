@@ -11,32 +11,37 @@ import orderRoute from "./src/routes/order.routes.js";
 import ShippingDetail from "./src/routes/shippingDetail.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import serverless from "serverless-http";
 
 const app = express();
 
+// ✅ Optional: Setup CORS options for local dev
 const corsOptions = {
   origin: ["https://shopping-store-frontend-ltnp.vercel.app"],
   credentials: true,
-  optionSuccessStatus: 200,
 };
 
 app.use(express.json());
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // ✅ CORRECT USAGE
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
-  res.send("Hello from Vercel serverless!");
+  res.send("Hello World!");
 });
 
 app.use("/api/v1", productRoute);
+
 app.use("/api/v1", cartRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1", userRoute);
 app.use("/api/v1", orderRoute);
 app.use("/api/v1", ShippingDetail);
 
-// 🟢 Connect MongoDB before exporting handler
-await connectDB();
-
-export const handler = serverless(app);
+connectDB()
+  .then(() => {
+    app.listen(process.env.PORT, () => {
+      console.log(`⚙️ Server is running at port: ${process.env.PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("❌ MongoDB connection failed!", err);
+  });
