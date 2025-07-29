@@ -11,13 +11,13 @@ import orderRoute from "../src/routes/order.routes.js";
 import ShippingDetail from "../src/routes/shippingDetail.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import serverless from "serverless-http";
 
 const app = express();
 
 const corsOptions = {
   origin: ["https://shopping-store-frontend-ltnp.vercel.app"],
   credentials: true,
+  optionSuccessStatus: 200,
 };
 
 app.use(express.json());
@@ -36,6 +36,12 @@ app.use("/api/v1", orderRoute);
 app.use("/api/v1", ShippingDetail);
 
 // ✅ Only connect MongoDB once
-await connectDB();
-
-export const handler = serverless(app);
+await connectDB()
+  .then(() => {
+    app.listen(process.env.PORT, () => {
+      console.log(`⚙️  Server is running at port : ${process.env.PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("MONGO DB connection failed !!! ", err);
+  });
