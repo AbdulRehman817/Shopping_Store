@@ -5,7 +5,6 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
     },
     email: {
       type: String,
@@ -19,10 +18,6 @@ const userSchema = new mongoose.Schema(
     image: {
       type: String,
       // if you're storing profile image URLs
-    },
-    isAdmin: {
-      type: Boolean,
-      default: false,
     },
     role: {
       type: String,

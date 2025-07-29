@@ -4,56 +4,134 @@ import bcrypt from "bcrypt";
 import { uploadImageToImageKit } from "../utils/imageKit.js";
 
 // ! Register User Controller
-const RegiserUser = async (req, res) => {
-  const { name, email, password } = req.body;
+// const RegiserUser = async (req, res) => {
+//   const { name, email, password } = req.body;
 
-  console.log("🔵 Register request received with data:", { name, email });
+//   console.log("🔵 Register request received with data:", { name, email });
 
-  // TODO: Check if koi field missing to error return karo
-  if (!name || !email || !password) {
-    console.log("❌ Missing fields in register request");
+//   // TODO: Check if koi field missing to error return karo
+//   if (!name || !email || !password) {
+//     console.log("❌ Missing fields in register request");
+//     return res.status(400).json({ message: "Please fill all fields" });
+//   }
+
+//   // ! Image bhi zaroori hai registration ke liye
+//   if (!req.file) {
+//     console.log("❌ No image uploaded");
+//     return res.status(400).json({ message: "No image file uploaded" });
+//   }
+
+//   try {
+//     // * ImageKit ke through image upload
+//     const imageUrl = await uploadImageToImageKit(req.file.path);
+//     console.log("📷 Image uploaded to Cloudinary:", imageUrl);
+
+//     if (!imageUrl) {
+//       return res.status(500).json({ message: "Image upload failed" });
+//     }
+
+//     // * Check karo user pehle se register hai ya nahi
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       console.log("⚠️ User already exists:", email);
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     // * Naya user create karo
+//     const newUser = await User.create({
+//       name,
+//       email,
+//       password,
+//       image: imageUrl,
+//     });
+
+//     console.log("✅ User created:", newUser);
+
+//     return res.status(201).json({
+//       message: "User registered successfully",
+//       user: newUser,
+//     });
+//   } catch (error) {
+//     console.error("❌ Error in register route:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Internal server error during registration" });
+//   }
+// };
+
+const RegisterUser = async (req, res) => {
+  const { name, email, password, role } = req.body;
+  console.log("🔵 Register request:", { name, email, role });
+
+  // 1. Field validation
+  if (!name || !email || !password || !role) {
+    console.log("❌ Missing registration fields");
     return res.status(400).json({ message: "Please fill all fields" });
   }
-
-  // ! Image bhi zaroori hai registration ke liye
+  if (!["user", "admin"].includes(role)) {
+    console.log("❌ Invalid role:", role);
+    return res.status(400).json({ message: "Role must be 'user' or 'admin'" });
+  }
   if (!req.file) {
     console.log("❌ No image uploaded");
-    return res.status(400).json({ message: "No image file uploaded" });
+    return res.status(400).json({ message: "Please upload a profile image" });
   }
 
   try {
-    // * ImageKit ke through image upload
+    // 2. Upload image
     const imageUrl = await uploadImageToImageKit(req.file.path);
-    console.log("📷 Image uploaded to Cloudinary:", imageUrl);
-
     if (!imageUrl) {
+      console.log("❌ Image upload failed");
       return res.status(500).json({ message: "Image upload failed" });
     }
+    console.log("📷 Image uploaded:", imageUrl);
 
-    // * Check karo user pehle se register hai ya nahi
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    // 3. Check for existing user
+    const existing = await User.findOne({ email });
+    if (existing) {
       console.log("⚠️ User already exists:", email);
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(409).json({ message: "User already exists" });
     }
 
-    // * Naya user create karo
+    // 4. Hash password
+
+    // 5. Create user
     const newUser = await User.create({
       name,
       email,
       password,
+      role,
       image: imageUrl,
     });
+    console.log("✅ New user created:", newUser._id);
 
-    console.log("✅ User created:", newUser);
+    // 6. Generate tokens
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
 
+    // 7. Set refreshToken cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // 8. Return response
     return res.status(201).json({
       message: "User registered successfully",
-      user: newUser,
+      accessToken,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        image: newUser.image,
+      },
     });
   } catch (error) {
-    console.error("❌ Error in register route:", error);
-    res
+    console.error("❌ Registration error:", error);
+    return res
       .status(500)
       .json({ message: "Internal server error during registration" });
   }
@@ -85,12 +163,12 @@ const generateRefreshToken = (user) => {
 
 // ! Login User Controller
 const LoginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
   console.log("🟢 Login attempt for:", email);
 
   // TODO: Field check karo
-  if (!email || !password) {
+  if (!email || !password || !role) {
     console.log("❌ Missing fields in login");
     return res.status(400).json({ message: "Please fill all fields" });
   }
@@ -108,7 +186,9 @@ const LoginUser = async (req, res) => {
     console.log("❌ Invalid password for:", email);
     return res.status(400).json({ message: "Invalid password" });
   }
-
+  if (user.role !== role) {
+    return res.status(403).json({ message: `Access denied for ${role}` });
+  }
   // * Tokens generate karo
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
@@ -117,7 +197,9 @@ const LoginUser = async (req, res) => {
   res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: false });
 
   console.log("✅ User logged in:", email);
-
+  console.log("data", user);
+  console.log("accessToken", accessToken);
+  console.log("refreshToken", refreshToken);
   return res.status(200).json({
     message: "User logged in successfully",
     accessToken,
@@ -125,6 +207,43 @@ const LoginUser = async (req, res) => {
     data: user,
   });
 };
+// const LoginUser = async (req, res) => {
+//   const { email, password, role } = req.body;
+
+//   if (!email || !password || !role) {
+//     return res.status(400).json({ message: "Please fill all fields" });
+//   }
+
+//   const user = await User.findOne({ email });
+
+//   if (!user) {
+//     return res.status(400).json({ message: "User not found" });
+//   }
+
+//   const isPasswordValid = await bcrypt.compare(password, user.password);
+//   if (!isPasswordValid) {
+//     return res.status(400).json({ message: "Invalid password" });
+//   }
+
+//   if (user.role !== role) {
+//     return res.status(403).json({ message: `Access denied for ${role}` });
+//   }
+
+//   const accessToken = generateAccessToken(user);
+//   const refreshToken = generateRefreshToken(user);
+
+//   res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: false });
+
+//   return res.status(200).json({
+//     message: "User logged in successfully",
+//     accessToken,
+//     refreshToken,
+//     data: {
+//       email: user.email,
+//       role: user.role,
+//     },
+//   });
+// };
 
 // ! Logout Controller
 const LogoutUser = async (req, res) => {
@@ -200,7 +319,7 @@ const getAllUsers = async (req, res) => {
 
 // * Exporting all controllers
 export {
-  RegiserUser,
+  RegisterUser,
   LoginUser,
   LogoutUser,
   getUserProfile,

@@ -3,7 +3,7 @@ dotenv.config();
 
 import express from "express";
 import connectDB from "./src/db/index.js";
-
+import adminRoute from "./src/routes/admin.routes.js";
 import productRoute from "./src/routes/product.routes.js";
 import cartRoute from "./src/routes/cart.routes.js";
 import userRoute from "./src/routes/user.routes.js";
@@ -31,6 +31,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1", productRoute);
 
 app.use("/api/v1", cartRoute);
+app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1", userRoute);
 app.use("/api/v1", orderRoute);
 app.use("/api/v1", ShippingDetail);

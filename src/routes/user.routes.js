@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  RegiserUser,
+  RegisterUser,
   LoginUser,
   LogoutUser,
   getUserProfile,
@@ -12,7 +12,7 @@ import { authMiddleware } from "../middleware/auth.middlware.js";
 
 const router = express.Router();
 
-router.post("/register", upload.single("image"), RegiserUser);
+router.post("/register", upload.single("image"), RegisterUser);
 router.post("/login", LoginUser);
 router.post("/logout", LogoutUser);
 router.post("/refreshToken", refreshToken);
