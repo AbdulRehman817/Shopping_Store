@@ -16,7 +16,7 @@ const app = express();
 
 // ✅ Optional: Setup CORS options for local dev
 const corsOptions = {
-  origin: ["https://shopping-store-frontend-ltnp.vercel.app"],
+  origin: "https://shopping-store-frontend-ltnp.vercel.app",
   credentials: true,
 };
 
