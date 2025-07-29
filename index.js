@@ -11,6 +11,7 @@ import orderRoute from "../src/routes/order.routes.js";
 import ShippingDetail from "../src/routes/shippingDetail.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import serverless from "serverless-http";
 
 const app = express();
 
@@ -35,13 +36,7 @@ app.use("/api/v1", userRoute);
 app.use("/api/v1", orderRoute);
 app.use("/api/v1", ShippingDetail);
 
-// ✅ Only connect MongoDB once
-await connectDB()
-  .then(() => {
-    app.listen(process.env.PORT, () => {
-      console.log(`⚙️  Server is running at port : ${process.env.PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.log("MONGO DB connection failed !!! ", err);
-  });
+// 🟢 Connect MongoDB before exporting handler
+await connectDB();
+
+export const handler = serverless(app);
