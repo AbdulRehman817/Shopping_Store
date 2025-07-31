@@ -20,7 +20,7 @@ const corsOptions = {
   credentials: true,
 };
 
-http: app.use(express.json());
+app.use(express.json());
 app.use(cors(corsOptions)); // ✅ CORRECT USAGE
 app.use(cookieParser());
 
