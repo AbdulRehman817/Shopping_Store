@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { uploadImageToImageKit } from "../utils/imageKit.js";
 
 // ! Register User Controller
-const RegiserUser = async (req, res) => {
+const RegisterUser = async (req, res) => {
   const { name, email, password } = req.body;
 
   console.log("🔵 Register request received with data:", { name, email });
