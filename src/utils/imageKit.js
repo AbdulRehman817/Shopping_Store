@@ -1,30 +1,31 @@
 // utils/uploadImageToImageKit.js
 import ImageKit from "imagekit";
-import fs from "fs";
+import dotenv from "dotenv";
+dotenv.config(); // ✅ This must be called before using process.env
 
 const imagekit = new ImageKit({
-  publicKey: "public_LoJS188L35l2G4/IyNhiN7d+76c=",
-  privateKey: "private_xNjkODSWw4NCMqaCcvq+5TCuhos=",
-  urlEndpoint: "https://ik.imagekit.io/ksb0pukrm",
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
-export const uploadImageToImageKit = (filePath) => {
+// Accept file buffer & originalname instead of filepath
+export const uploadImageToImageKit = async (fileBuffer, originalname) => {
   return new Promise((resolve, reject) => {
-    const fileStream = fs.readFileSync(filePath);
-    const fileName = `user_${Date.now()}.jpg`;
+    const fileName = `user_${Date.now()}_${originalname}`;
 
     imagekit.upload(
       {
-        file: fileStream, // required
-        fileName: fileName, // required
-        folder: "/user_profiles",
+        file: fileBuffer, // ✅ buffer directly
+        fileName,
+        folder: "/uploads",
       },
-      function (error, result) {
+      (error, result) => {
         if (error) {
           console.error("❌ ImageKit Upload Error:", error);
           reject(error);
         } else {
-          console.log("📷 Uploaded to ImageKit:", result.url);
+          console.log("✅ Uploaded to ImageKit:", result.url);
           resolve(result.url);
         }
       }
