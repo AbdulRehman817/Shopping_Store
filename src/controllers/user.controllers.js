@@ -2,42 +2,25 @@ import { User } from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { uploadImageToImageKit } from "../utils/imageKit.js";
-
+import fs from "fs";
 // ! Register User Controller
+
 const RegisterUser = async (req, res) => {
-  const { name, email, password } = req.body;
-
-  console.log("🔵 Register request received with data:", { name, email });
-
-  // Check for missing fields
-  if (!name || !email || !password) {
-    console.log("❌ Missing fields in register request");
-    return res.status(400).json({ message: "Please fill all fields" });
-  }
-
-  // Image is required for registration
-  if (!req.file) {
-    console.log("❌ No image uploaded");
-    return res.status(400).json({ message: "No image file uploaded" });
-  }
-
   try {
-    // Upload image using ImageKit
+    const { name, email, password } = req.body;
+
+    // Check required fields
+    if (!name || !email || !password || !req.file) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Upload image to ImageKit
     const imageUrl = await uploadImageToImageKit(req.file.path);
-    console.log("📷 Image uploaded to ImageKit:", imageUrl);
 
-    if (!imageUrl) {
-      return res.status(500).json({ message: "Image upload failed" });
-    }
+    // Delete local file after upload
+    fs.unlinkSync(req.file.path);
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      console.log("⚠️ User already exists:", email);
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    // Create new user (password will be hashed by pre-save hook)
+    // Save to MongoDB
     const newUser = await User.create({
       name,
       email,
@@ -46,17 +29,14 @@ const RegisterUser = async (req, res) => {
       image: imageUrl,
     });
 
-    console.log("✅ User created:", newUser);
-
-    return res.status(201).json({
-      message: "User registered successfully",
-      user: newUser,
-    });
+    res
+      .status(201)
+      .json({ message: "User created successfully", user: newUser });
   } catch (error) {
-    console.error("❌ Error in register route:", error);
-    return res
+    console.error("Signup Error ❌", error);
+    res
       .status(500)
-      .json({ message: "Internal server error during registration" });
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
 
