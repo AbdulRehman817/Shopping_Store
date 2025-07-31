@@ -42,6 +42,7 @@ const RegiserUser = async (req, res) => {
       name,
       email,
       password,
+      role: "user",
       image: imageUrl,
     });
 
