@@ -9,35 +9,35 @@ const RegisterUser = async (req, res) => {
 
   console.log("🔵 Register request received with data:", { name, email });
 
-  // TODO: Check if koi field missing to error return karo
+  // Check for missing fields
   if (!name || !email || !password) {
     console.log("❌ Missing fields in register request");
     return res.status(400).json({ message: "Please fill all fields" });
   }
 
-  // ! Image bhi zaroori hai registration ke liye
+  // Image is required for registration
   if (!req.file) {
     console.log("❌ No image uploaded");
     return res.status(400).json({ message: "No image file uploaded" });
   }
 
   try {
-    // * ImageKit ke through image upload
+    // Upload image using ImageKit
     const imageUrl = await uploadImageToImageKit(req.file.path);
-    console.log("📷 Image uploaded to Cloudinary:", imageUrl);
+    console.log("📷 Image uploaded to ImageKit:", imageUrl);
 
     if (!imageUrl) {
       return res.status(500).json({ message: "Image upload failed" });
     }
 
-    // * Check karo user pehle se register hai ya nahi
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log("⚠️ User already exists:", email);
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // * Naya user create karo
+    // Create new user (password will be hashed by pre-save hook)
     const newUser = await User.create({
       name,
       email,
@@ -54,7 +54,7 @@ const RegisterUser = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error in register route:", error);
-    res
+    return res
       .status(500)
       .json({ message: "Internal server error during registration" });
   }
