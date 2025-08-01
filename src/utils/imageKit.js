@@ -12,7 +12,9 @@ const imagekit = new ImageKit({
 // Accept file buffer & originalname instead of filepath
 export const uploadImageToImageKit = async (fileBuffer, originalname) => {
   return new Promise((resolve, reject) => {
-    const fileName = `user_${Date.now()}_${originalname}`;
+    const fileName = `user_${Date.now()}_${
+      user?.name?.replace(/\s+/g, "_") || "guest"
+    }`;
 
     imagekit.upload(
       {
@@ -30,5 +32,6 @@ export const uploadImageToImageKit = async (fileBuffer, originalname) => {
         }
       }
     );
+    A;
   });
 };

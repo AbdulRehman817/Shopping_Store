@@ -16,10 +16,7 @@ const app = express();
 
 // ✅ Optional: Setup CORS options for local dev
 const corsOptions = {
-  origin: [
-    "https://shopping-store-frontend-chi.vercel.app",
-    "http://localhost:3000",
-  ], // your frontend domain
+  origin: "*", // your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
 
