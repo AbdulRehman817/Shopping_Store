@@ -8,21 +8,33 @@ const RegisterUser = async (req, res) => {
   const { email, password, name } = req.body;
   console.log("🔵 Register request received with data:", { name, email });
 
-  if (!email || !password || !name || !req.file) {
+  if (!email || !password || !name) {
     return res.status(400).json({ message: "all the field are required" });
   }
 
-  const user = await User.findOne({ email: email });
-  if (user) return res.status(401).json({ message: "user already exist" });
-  const imageUrl = await uploadImageToImageKit(req.file.path);
-  fs.unlinkSync(req.file.path);
+  if (!req.file) {
+    console.log("❌ No image uploaded");
+    return res.status(400).json({ message: "No image file uploaded" });
+  }
 
   try {
-    const createUser = await User.create({
+    const imageUrl = await uploadImageToImageKit(req.file.path);
+    console.log("📷 Image uploaded to Cloudinary:", imageUrl);
+
+    if (!imageUrl) {
+      return res.status(500).json({ message: "Image upload failed" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log("⚠️ User already exists:", email);
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const newUser = await User.create({
+      name,
       email,
       password,
-      name,
-      role: "user",
       image: imageUrl,
     });
     res.json({
