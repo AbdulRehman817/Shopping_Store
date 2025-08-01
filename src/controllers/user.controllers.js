@@ -39,7 +39,7 @@ const RegisterUser = async (req, res) => {
     });
     res.json({
       message: "user registered successfully",
-      data: createUser,
+      data: newUser,
     });
   } catch (error) {
     console.log(error);
