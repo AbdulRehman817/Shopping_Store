@@ -1,7 +1,13 @@
-// middleware/user.multer.js
 import multer from "multer";
 
-// Use memory storage so we can upload directly to ImageKit
-const storage = multer.memoryStorage();
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix);
+  },
+});
 
-export const upload = multer({ storage });
+export const upload = multer({ storage: storage });
