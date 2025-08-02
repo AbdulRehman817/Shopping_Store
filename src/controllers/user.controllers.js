@@ -4,12 +4,35 @@ import bcrypt from "bcrypt";
 import { uploadImageToImageKit } from "../utils/imageKit.js";
 import fs from "fs";
 
+const generateAccessToken = (user) => {
+  const secret = process.env.ACCESS_JWT_SECRET;
+  if (!secret) throw new Error("ACCESS_JWT_SECRET is not set");
+
+  console.log("🔑 Generating access token for:", user.email);
+
+  return jwt.sign({ email: user.email, userId: user._id.toString() }, secret, {
+    expiresIn: "6h",
+  });
+};
+
+// * Refresh Token generate karne wala function
+const generateRefreshToken = (user) => {
+  const secret = process.env.REFRESH_JWT_SECRET;
+  if (!secret) throw new Error("REFRESH_JWT_SECRET is not set");
+
+  console.log("🔁 Generating refresh token for:", user.email);
+
+  return jwt.sign({ email: user.email, userId: user._id.toString() }, secret, {
+    expiresIn: "7d",
+  });
+};
+
 const registerUser = async (req, res) => {
   const { email, password, name } = req.body;
   console.log("🔵 Register request received with data:", { name, email });
 
   if (!email || !password || !name) {
-    return res.status(400).json({ message: "all the field are required" });
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   if (!req.file) {
@@ -37,38 +60,38 @@ const registerUser = async (req, res) => {
       password,
       image: imageUrl,
     });
-    res.json({
-      message: "user registered successfully",
+
+    // ✅ Generate tokens
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+
+    // ✅ Set refresh token in cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false, // set to true in production with HTTPS
+    });
+
+    // ✅ Return user and tokens
+    return res.status(201).json({
+      message: "User registered successfully",
+      accessToken,
+      refreshToken,
       data: newUser,
     });
   } catch (error) {
-    console.log(error);
+    console.log("❌ Error in registerUser:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    // ✅ Clean up uploaded file
+    if (req.file?.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error("🧹 Error deleting temp file:", err);
+      });
+    }
   }
 };
 
 // * Access Token generate karne wala function
-const generateAccessToken = (user) => {
-  const secret = process.env.ACCESS_JWT_SECRET;
-  if (!secret) throw new Error("ACCESS_JWT_SECRET is not set");
-
-  console.log("🔑 Generating access token for:", user.email);
-
-  return jwt.sign({ email: user.email, userId: user._id.toString() }, secret, {
-    expiresIn: "6h",
-  });
-};
-
-// * Refresh Token generate karne wala function
-const generateRefreshToken = (user) => {
-  const secret = process.env.REFRESH_JWT_SECRET;
-  if (!secret) throw new Error("REFRESH_JWT_SECRET is not set");
-
-  console.log("🔁 Generating refresh token for:", user.email);
-
-  return jwt.sign({ email: user.email, userId: user._id.toString() }, secret, {
-    expiresIn: "7d",
-  });
-};
 
 // ! Login User Controller
 const LoginUser = async (req, res) => {
