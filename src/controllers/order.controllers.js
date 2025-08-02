@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { ShoppingProducts } from "../models/product.models.js";
 import { ShoppingOrder } from "../models/order.models.js";
-
 const createOrder = async (req, res) => {
   try {
     const { userId, items, shippingInfo } = req.body;

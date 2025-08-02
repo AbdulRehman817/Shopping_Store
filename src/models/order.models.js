@@ -39,5 +39,4 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-const ShoppingOrder = mongoose.model("ShoppingOrder", orderSchema);
-export default ShoppingOrder;
+export const ShoppingOrder = mongoose.model("ShoppingOrder", orderSchema);
