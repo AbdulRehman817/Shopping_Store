@@ -16,7 +16,9 @@ const getAllUsers = async (req, res) => {
 // ✅ GET all orders with user details
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await ShoppingOrder.find().populate("user", "name email");
+    const orders = await ShoppingOrder.find()
+      .populate("user", "name email")
+      .populate("items.productId", "name");
     res.json(orders);
   } catch (error) {
     res
