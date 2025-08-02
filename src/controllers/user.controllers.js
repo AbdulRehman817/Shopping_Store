@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { uploadImageToImageKit } from "../utils/imageKit.js";
 import fs from "fs";
 
-const RegisterUser = async (req, res) => {
+const registerUser = async (req, res) => {
   const { email, password, name } = req.body;
   console.log("🔵 Register request received with data:", { name, email });
 
@@ -191,7 +191,7 @@ const getAllUsers = async (req, res) => {
 
 // * Exporting all controllers
 export {
-  RegisterUser,
+  registerUser,
   LoginUser,
   LogoutUser,
   getUserProfile,
