@@ -75,7 +75,7 @@ const createOrder = async (req, res) => {
       shippingInfo,
       status: "Pending",
       ImageURL: imageURL,
-    });
+    }).populate("user", "name email");
 
     // ✅ Apply stock updates (in parallel)
     for (const update of stockUpdates) {
@@ -146,4 +146,38 @@ const getAllOrders = async (req, res) => {
   }
 };
 
-export { createOrder, getOrdersByUserId, getAllOrders };
+const updateOrderStatus = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { status } = req.body;
+
+    // Validate input
+    if (
+      !status ||
+      !["Pending", "Shipped", "Delivered", "Cancelled"].includes(status)
+    ) {
+      return res.status(400).json({ message: "Invalid or missing status" });
+    }
+
+    // Find and update order
+    const order = await ShoppingOrder.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({
+      message: "Order status updated successfully",
+      order,
+    });
+  } catch (error) {
+    console.error("Update order status error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export { createOrder, getOrdersByUserId, getAllOrders, updateOrderStatus };
