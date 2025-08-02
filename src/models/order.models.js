@@ -7,24 +7,6 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
-    shippingInfo: {
-      fullName: { type: String, required: true },
-      email: {
-        type: String,
-        required: true,
-        match: [/.+\@.+\..+/, "Please enter a valid email address"],
-      },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      phoneNumber: {
-        type: String, // Changed to String to preserve leading 0s
-        required: true,
-      },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
-    },
-
     items: [
       {
         productId: {
@@ -35,35 +17,27 @@ const orderSchema = new mongoose.Schema(
         quantity: {
           type: Number,
           required: true,
-          default: 1,
         },
       },
     ],
-
-    totalAmount: {
-      type: Number,
-      required: true,
-      default: 0,
+    totalAmount: Number,
+    shippingInfo: {
+      address: String,
+      city: String,
+      country: String,
+      postalCode: String,
     },
-
+    ImageURL: String,
     status: {
       type: String,
-      enum: ["Pending", "Shipped", "Delivered", "Cancelled"],
+      enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
       default: "Pending",
-    },
-
-    shippedAt: {
-      type: Date,
-    },
-
-    deliveredAt: {
-      type: Date,
     },
   },
   {
-    timestamps: true, // adds createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
-export const ShoppingOrder =
-  mongoose.models.ShoppingOrder || mongoose.model("ShoppingOrder", orderSchema);
+const ShoppingOrder = mongoose.model("ShoppingOrder", orderSchema);
+export default ShoppingOrder;

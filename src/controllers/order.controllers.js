@@ -2,11 +2,10 @@ import mongoose from "mongoose";
 import { ShoppingProducts } from "../models/product.models.js";
 import { ShoppingOrder } from "../models/order.models.js";
 
-const createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
   try {
     const { userId, items, shippingInfo } = req.body;
 
-    // 🛑 Validate request body
     if (!userId || !Array.isArray(items) || items.length === 0) {
       return res
         .status(400)
@@ -25,7 +24,6 @@ const createOrder = async (req, res) => {
     for (let i = 0; i < items.length; i++) {
       const { productId, quantity } = items[i];
 
-      // ✅ Validate ObjectId
       if (!mongoose.Types.ObjectId.isValid(productId)) {
         return res
           .status(400)
@@ -40,7 +38,6 @@ const createOrder = async (req, res) => {
           .json({ message: `Product not found at index ${i}` });
       }
 
-      // ✅ Validate quantity
       if (typeof quantity !== "number" || quantity <= 0) {
         return res
           .status(400)
@@ -49,7 +46,7 @@ const createOrder = async (req, res) => {
 
       if (product.stock < quantity) {
         return res.status(400).json({
-          message: `Insufficient stock for "${product.name}". Available: ${product.stock}, requested: ${quantity}`,
+          message: `Insufficient stock for "${product.name}".`,
         });
       }
 
@@ -61,23 +58,20 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Optional: include image for order summary
     const imageURL =
       items.length > 0
         ? (await ShoppingProducts.findById(items[0].productId))?.image
         : null;
 
-    // ✅ Save order
     const order = await ShoppingOrder.create({
       userId,
       items,
-      totalAmount: parseFloat(totalAmount.toFixed(2)), // Ensure number with decimals
+      totalAmount: parseFloat(totalAmount.toFixed(2)),
       shippingInfo,
       status: "Pending",
       ImageURL: imageURL,
-    }).populate("user", "name email");
+    });
 
-    // ✅ Apply stock updates (in parallel)
     for (const update of stockUpdates) {
       await ShoppingProducts.findByIdAndUpdate(update.productId, {
         stock: update.newStock,
@@ -89,8 +83,10 @@ const createOrder = async (req, res) => {
       order,
     });
   } catch (error) {
-    console.error("Error creating order:", error.message);
-    res.status(500).json({ message: "Internal server error", error });
+    console.error("Error creating order:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
