@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const shippingDetailSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

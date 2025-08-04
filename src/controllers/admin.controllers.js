@@ -17,7 +17,7 @@ const getAllUsers = async (req, res) => {
 const getAllOrders = async (req, res) => {
   try {
     const orders = await ShoppingOrder.find()
-      .populate("user", "name email")
+      .populate("userId", "name email")
       .populate("items.productId", "name");
     res.json(orders);
   } catch (error) {
@@ -39,7 +39,7 @@ const updateOrderStatus = async (req, res) => {
       id,
       { status },
       { new: true }
-    ).populate("user", "name email");
+    ).populate("userId", "name email");
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 

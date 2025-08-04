@@ -3,17 +3,17 @@ import { ShippingDetail } from "../models/shippingDetail.models.js";
 // Create Shipping Detail
 const createShippingDetail = async (req, res) => {
   try {
-    const { user, fullName, address, city, postalCode, country, phone } =
+    const { userId, fullName, address, city, postalCode, country, phone } =
       req.body;
 
     const shipping = new ShippingDetail({
-      user,
+      userId,
       fullName,
       address,
       city,
       postalCode,
       country,
-      phone,
+      phoneNumber,
     });
 
     const savedShipping = await shipping.save();
@@ -26,9 +26,9 @@ const createShippingDetail = async (req, res) => {
 // Get Shipping Details by User ID
 const getShippingByUser = async (req, res) => {
   try {
-    const user = req.params.user;
+    const userId = req.params.userId;
 
-    const shipping = await ShippingDetail.find({ user });
+    const shipping = await ShippingDetail.find({ userId });
     res.status(200).json(shipping);
   } catch (error) {
     res

@@ -3,9 +3,9 @@ import { ShoppingProducts } from "../models/product.models.js";
 import { ShoppingOrder } from "../models/order.models.js";
 const createOrder = async (req, res) => {
   try {
-    const { user, items, shippingInfo } = req.body;
+    const { userId, items, shippingInfo } = req.body;
 
-    if (!user || !Array.isArray(items) || items.length === 0) {
+    if (!userId || !Array.isArray(items) || items.length === 0) {
       return res
         .status(400)
         .json({ message: "User ID and cart items are required." });
@@ -63,7 +63,7 @@ const createOrder = async (req, res) => {
         : null;
 
     const order = await ShoppingOrder.create({
-      user,
+      userId,
       items,
       totalAmount: parseFloat(totalAmount.toFixed(2)),
       shippingInfo,
@@ -91,9 +91,9 @@ const createOrder = async (req, res) => {
 
 const getOrdersByUserId = async (req, res) => {
   try {
-    const user = req.params.user;
+    const userId = req.params.userId;
 
-    const orders = await ShoppingOrder.find({ user }).populate(
+    const orders = await ShoppingOrder.find({ userId }).populate(
       "items.productId"
     );
 
