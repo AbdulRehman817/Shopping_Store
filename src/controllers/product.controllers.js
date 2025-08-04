@@ -6,10 +6,10 @@ import { uploadImageToImageKit } from "../utils/imageKit.js";
 const createProduct = async (req, res) => {
   try {
     // * Request body se required fields nikaal rahe hain
-    const { name, description, price, category, stock } = req.body;
+    const { name, description, price, type, team, color, stock } = req.body;
 
     // TODO: Check karo ke koi field empty na ho
-    if (!name || !description || !price || !category || !stock) {
+    if (!name || !description || !price || !type || !team || !color || !stock) {
       return res.status(400).json({
         message: "All fields must be filled properly",
       });
@@ -42,7 +42,9 @@ const createProduct = async (req, res) => {
       name,
       description,
       price,
-      category,
+      type,
+      team,
+      color,
       stock,
       image: imageUrl,
     });
